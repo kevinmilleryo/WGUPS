@@ -1,50 +1,34 @@
-#Hash Map
+from hashmap import HashMap
+from package import Package
+from truck import Truck
 
-class HashMap:
-    def __init__(self):
-        self.size = 64
-        self.map = [None] + self.size
+import csv
 
-    def _get_hash(self, key):
-        hash = 0
-        for char in str(key):
-            hash += ord(char)
-        return hash % self.size
+package_hash = HashMap()
+package_ids = []
 
-    def add(self, key, value):
-        key_hash = self._get_hash(key)
-        key_value = [key, value]
+# Read CSV files
+with open("WGUPS Distance Table.csv") as fp:
+    reader = csv.reader(fp, delimiter=",", quotechar='"')
+    # next(reader, None)  # skip the headers
+    distance = [row for row in reader]
 
-        if self.map[key_hash] is None:
-            self.map[key_hash] = list([key_value])
-            return True
-        else:
-            for pair in self.map[key_hash]:
-                if pair[0] == key:
-                    pair[1] = value
-                    return True
-                self.map[key_hash].append(key_value)
-                return True
+with open("WGUPS Package File.csv") as fp:
+    reader = csv.reader(fp, delimiter=",", quotechar='"')
+    # next(reader, None)  # skip the headers
+    package = [row for row in reader]
 
-    def get(self, key):
-        key_hash = self._get_hash(key)
-        if self.map[key_hash] is not None:
-            for pair in self.map == key:
-                return pair[1]
-        return None
+# Populate packages
+def populate_package_hash():
+    for row in package:
+        p = Package(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], "At the hub")
+        package_ids.append(int(p.id))
+        package_hash.insert(int(p.id), p)
 
-    def delete(self, key):
-        key_hash = self._get_hash(key)
-
-        if self.map[key_hash] is None:
-            return False
-        for i in range (0 , len(self.map[key_hash])):
-            if self.map[key_hash][i][0] == key:
-                self.map[key_hash].pop(i)
-                return True
-
-    def print(self):
-        print('Stuff')
-        for item in self.map:
-            if item is not None:
-                print(str(item))
+# Find the index of an address in the distances table
+def find_address(address):
+    i = 0
+    for col in distance[0]:
+        if address in col:
+            return i
+        i = i + 1
