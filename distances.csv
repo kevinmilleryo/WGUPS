@@ -1,16 +1,9 @@
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,WGUPS Distance Table,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,NHP2: WGUPS Routing Program,,,,,,,,,,,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,,,,,,,,,,,,,
-DISTANCE BETWEEN HUBS IN MILES,,"Western Governors University
-4001 South 700 East, 
+DISTANCE BETWEEN HUBS IN MILES,lol,"Western Governors University
+4001 South 700 East,
 Salt Lake City, UT 84107","International Peace Gardens
  1060 Dalton Ave S","Sugar House Park
  1330 2100 S","Taylorsville-Bennion Heritage City Gov Off
- 1488 4800 S","Salt Lake City Division of Health Services 
+ 1488 4800 S","Salt Lake City Division of Health Services
  177 W Price Ave","South Salt Lake Public Works
  195 W Oakland Ave","Salt Lake City Streets and Sanitation
  2010 W 500 S","Deker Lake
@@ -32,11 +25,12 @@ Salt Lake City, UT 84107","International Peace Gardens
  5025 State St","Valley Regional Softball Complex
  5100 South 2700 West","City Center of Rock Springs
  5383 South 900 East #104","Rice Terrace Pavilion Park
- 600 E 900 South","Wheeler Historic Farm 
+ 600 E 900 South","Wheeler Historic Farm
  6351 South 900 East"
 "Western Governors University
-4001 South 700 East, 
-Salt Lake City, UT 84107", HUB,0.0,,,,,,,,,,,,,,,,,,,,,,,,,,
+4001 South 700 East,
+Salt Lake City, UT 84107", "4001 South 700 East
+(84107)",0.0,,,,,,,,,,,,,,,,,,,,,,,,,,
 "International Peace Gardens
  1060 Dalton Ave S"," 1060 Dalton Ave S
 (84104)",7.2,0.0,,,,,,,,,,,,,,,,,,,,,,,,,
@@ -46,7 +40,7 @@ Salt Lake City, UT 84107", HUB,0.0,,,,,,,,,,,,,,,,,,,,,,,,,,
 "Taylorsville-Bennion Heritage City Gov Off
  1488 4800 S"," 1488 4800 S
 (84123)",11.0,6.4,9.2,0.0,,,,,,,,,,,,,,,,,,,,,,,
-"Salt Lake City Division of Health Services 
+"Salt Lake City Division of Health Services
  177 W Price Ave"," 177 W Price Ave
 (84115)",2.2,6.0,4.4,5.6,0.0,,,,,,,,,,,,,,,,,,,,,,
 "South Salt Lake Public Works
@@ -112,6 +106,13 @@ Salt Lake City, UT 84107", HUB,0.0,,,,,,,,,,,,,,,,,,,,,,,,,,
 "Rice Terrace Pavilion Park
  600 E 900 South"," 600 E 900 South
 (84105)",5.0,4.4,2.8,10.1,5.4,3.5,5.1,6.2,2.8,3.2,11.0,3.7,2.8,6.4,6.5,5.7,6.2,5.1,4.3,1.8,6.0,7.9,6.8,10.6,7.0,0.0,
-"Wheeler Historic Farm 
+"Wheeler Historic Farm
  6351 South 900 East"," 6351 South 900 East
 (84121)",3.6,13.0,7.4,10.1,5.5,7.2,14.2,10.7,14.1,6.0,6.8,6.4,14.1,10.5,8.8,8.4,13.6,5.2,6.9,13.1,4.1,4.7,3.1,7.8,1.3,8.3,0.0
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,
