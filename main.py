@@ -44,15 +44,16 @@ def calculate_route(truck, end_time):
             package = package_hash.search(package_id)
             package.status = "En Route by " + truck.name
 
+        # Iterate through all undelivered packages
         while len(undelivered_packages) > 0:
             least_distance = 1000.0
             next_package = None
 
-            # Iterate through all undelivered packages to find the
-            # next delivery address nearest to the truck's nearest location
+
+            # find next delivery address closest to the truck location
             for package_id in undelivered_packages:
 
-                # Find the indexes for the current address of the truck and the address
+                # Find indexes for current address of truck and the address
                 # of the next package
                 curr_loc = int(find_address(truck.current_location))
                 package = package_hash.search(package_id)
@@ -64,19 +65,19 @@ def calculate_route(truck, end_time):
                 else:
                     distance = float(distances[curr_loc][next_loc])
 
-                # If the distance between the two addresses is less than the least distance found,
-                # set the new least distance and next package
+                # If distance between addresses is less than the least distance found
+                # set new least distance and next package
                 if (distance < least_distance):
                     next_package = package
                     least_distance = distance
 
-            # Mark a package as "delivered" by removing it from the undelivered packages list
+            # Mark a package as "delivered", removing from undelivered packages
             undelivered_packages.remove(int(next_package.id))
 
-            # Update what the time is by estimating the time it takes to deliver the next package
+            # Update time by estimating the time it takes to deliver the next package
             truck.current_time = truck.current_time + datetime.timedelta(hours=(least_distance / truck.speed))
 
-            # If the current time has gone past the end time set, set the current time and break the loop
+            # If current time has gone past end time, set the current time and break loop
             if (truck.current_time > end_time):
                 truck.current_time = end_time
                 break;
@@ -110,8 +111,8 @@ if __name__ == '__main__':
         # Menu
         print("\n****************************************************************************\n" +
               "p: Print all package staus and total mileage\n" +
-              "s [package_id] [time] : Get single package status and time\n" +
-              "a [time]: Get all packages with time\n" +
+              "s [package_id] [time] : Get single package status and (military) time\n" +
+              "a [time]: Get all packages with (military) time\n" +
               "q: Quit Program\n" +
               "******************************************************************************")
         command = input("\ncommand: ").split(" ")
