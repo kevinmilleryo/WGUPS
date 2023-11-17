@@ -53,8 +53,7 @@ def calculate_route(truck, end_time):
             # find next delivery address closest to the truck location
             for package_id in undelivered_packages:
 
-                # Find indexes for current address of truck and the address
-                # of the next package
+                # Find indexes for current address of truck and the address of the next package
                 curr_loc = int(find_address(truck.current_location))
                 package = package_hash.search(package_id)
                 next_loc = int(find_address(package.address))
