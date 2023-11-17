@@ -1,22 +1,21 @@
-class Package:
+# Create class for packages
+class Package():
 
-    # Initialize Package
-    def __init__(self, id, address, city, state, zip, delivery_deadline, weight, notes, status):
+    # Constructor
+    def __init__(self, id, address, city, state, zip, deadline, weight, note, delivery_status="at the hub", delivery_time="N/A", delivery_truck="N/A", delivery_distance=0):
         self.id = id
         self.address = address
         self.city = city
         self.state = state
         self.zip = zip
-        self.delivery_deadline = delivery_deadline
+        self.deadline = deadline
         self.weight = weight
-        self.notes = notes
-        self.status = status
+        self.note = note
+        self.delivery_status = delivery_status
+        self.delivery_time = delivery_time
+        self.delivery_truck = delivery_truck
+        self.delivery_distance = delivery_distance
 
-    # Print format Packages
+    # Returns a string representation of the package
     def __str__(self):
-        # If the package does not have notes, do not try to print the notes
-        if (self.notes != ""):
-            return "{self.id}, {self.address}, {self.city}, {self.state}, {self.zip}, {self.delivery_deadline}, {self.weight}kg, {self.notes}, {self.status}".format(self=self)
-        else:
-            return "{self.id}, {self.address}, {self.city}, {self.state}, {self.zip}, {self.delivery_deadline}, {self.weight}kg, ..., {self.status}".format(
-                self=self)
+        return f"Package ID: {self.id} Address: {self.address} {self.city}, {self.state} {self.zip} Deadline: {self.deadline} Weight: {self.weight} Note: {self.note} Delivery Status: {self.delivery_status} Delivery Time: {self.delivery_time} Delivery Truck: {self.delivery_truck}"

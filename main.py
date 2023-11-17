@@ -1,211 +1,327 @@
-import datetime
+#Kevin Miller
+#Student ID: 011482203
 
-from HashTable import HashTable
-from Package import Package
-from Truck import Truck
 import csv
-
-package_hash = HashTable()
-package_ids = []
-
-# Read the data from packages.csv
-with open('packages.csv', newline='') as csvfile:
-    reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-    packages = list(reader)
-
-# Read the data from distances.csv
-with open('distances.csv', newline='') as csvfile:
-    reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-    distances = list(reader)
-
-# Use the data from the packages.csv file to populate hash table
-def populate_package_hash():
-    for row in packages:
-        p = Package(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], "At the hub")
-        package_ids.append(int(p.id))
-        package_hash.insert(int(p.id), p)
-
-# Find the address index in the distances.csv file
-def find_address(address):
-    i = 0
-    for col in distances[0]:
-        if address in col:
-            return i
-        i = i + 1
-
-# Nearest neighbor algorithm
-def calculate_route(truck, end_time):
-    undelivered_packages = truck.packages.copy()
-    # Do not run if the truck will not have departed
-    if end_time >= truck.current_time:
-
-        # Change the status of each package on the truck to "En route"
-        for package_id in truck.packages:
-            package = package_hash.search(package_id)
-            package.status = "En Route by " + truck.name
-
-        # Iterate through all undelivered packages
-        while len(undelivered_packages) > 0:
-            least_distance = 1000.0
-            next_package = None
+import re
+import Package
+import HashTable
+import Truck
 
 
-            # find next delivery address closest to the truck location
-            for package_id in undelivered_packages:
 
-                # Find indexes for current address of truck and the address of the next package
-                curr_loc = int(find_address(truck.current_location))
-                package = package_hash.search(package_id)
-                next_loc = int(find_address(package.address))
+def create_packages_hash_table():
+    packages_hash_table = HashTable.HashTable()
 
-                # The order of the location indexes to get the distance depends on which index is greater
-                if (next_loc > curr_loc):
-                    distance = float(distances[next_loc][curr_loc])
-                else:
-                    distance = float(distances[curr_loc][next_loc])
+    # Read packages.csv
+    with open('packages.csv', mode='r', encoding='utf-8-sig') as csv_packages_file:
+        csv_packages = csv.reader(csv_packages_file, delimiter=',')
+        csv_packages = list(csv_packages)
 
-                # If distance between addresses is less than the least distance found
-                # set new least distance and next package
-                if (distance < least_distance):
-                    next_package = package
-                    least_distance = distance
+        # Add packages to hash table
+        for package in csv_packages:
+            package_id = package[0]
+            package_address = package[1]
+            package_city = package[2]
+            package_state = package[3]
+            package_zip = package[4]
+            package_deadline = package[5]
+            package_weight = package[6]
+            package_note = package[7]
+            packages_hash_table.add(package_id, Package.Package(package_id, package_address, package_city,
+                                    package_state, package_zip, package_deadline, package_weight, package_note))
 
-            # Mark a package as "delivered", removing from undelivered packages
-            undelivered_packages.remove(int(next_package.id))
+    return packages_hash_table
 
-            # Update time by estimating the time it takes to deliver the next package
-            truck.current_time = truck.current_time + datetime.timedelta(hours=(least_distance / truck.speed))
-
-            # If current time has gone past end time, set the current time and break loop
-            if (truck.current_time > end_time):
-                truck.current_time = end_time
-                break;
-
-            next_package.status = "Delivered @ " + str(truck.current_time) + " by " + truck.name
-
-            package_hash.insert(int(next_package.id), next_package)
-
-            truck.current_location = next_package.address
-
-            truck.distance += least_distance
-    return truck
+# Create address list
 
 
-if __name__ == '__main__':
+def create_addresses_list():
+    with open('addresses.csv', mode='r', encoding='utf-8-sig') as csv_addresses_file:
+        csv_addresses = csv.reader(csv_addresses_file)
+        return list(csv_addresses)
+
+# Create distances list
 
 
-    while True:
-        # Populate hash table from package CSV
-        package_ids = []
-        populate_package_hash()
+def create_distances_list():
+    with open('distances.csv', mode='r', encoding='utf-8-sig') as csv_distances_file:
+        csv_distances = csv.reader(csv_distances_file)
+        return list(csv_distances)
 
-        # Create trucks and load packages
-        truck1_packages = [1, 13, 14, 15, 16, 19, 20, 23, 29, 30, 31, 34, 37, 40]
-        truck1 = Truck("Truck 1", 18, datetime.timedelta(hours=8), truck1_packages, "4001 South 700 East")
-        truck2_packages = [2, 3, 4, 5, 6, 10, 18, 21, 22, 26, 35, 36, 38]
-        truck2 = Truck("Truck 2", 18, datetime.timedelta(hours=9, minutes=15), truck2_packages, "4001 South 700 East")
-        truck3_packages = [7, 8, 9, 11, 12, 17, 24, 25, 27, 28, 32, 33, 39]
-        truck3 = Truck("Truck 3", 18, datetime.timedelta(hours=10, minutes=30), truck3_packages, "4001 South 700 East")
 
-        # Menu
-        print("\n****************************************************************************\n" +
-              "p: Print all package staus and total mileage\n" +
-              "s [package_id] [time] : Get single package status and (military) time\n" +
-              "a [time]: Get all packages with (military) time\n" +
-              "q: Quit Program\n" +
-              "******************************************************************************")
-        command = input("\ncommand: ").split(" ")
+# Create packages hash table
+packages_hash_table = create_packages_hash_table()
 
-        if command[0] == "p":
+# Create addresses list
+addresses_list = create_addresses_list()
 
-            # Set end time to "EOD"
-            time = datetime.timedelta(hours=23)
+# Create distances list
+distances_list = create_distances_list()
 
-            # Because this command prints for EOD, the package with the wrong address would be updated
-            p = package_hash.search(9)
-            p.address = "410 S State St"
-            p.city = "Salt Lake City"
-            p.state = "UT"
-            p.zip = "84111"
-            package_hash.insert(p.id, p)
 
-            # Find status of packages
-            truck1 = calculate_route(truck1, time)
+# Create and load first truck
+first_truck = Truck.Truck(
+    1, 16, ["1", "2", "4", "5", "13", "14", "15", "16", "19", "20", "29", "30", "31", "34", "37", "40"], 0, 0, "4001 South 700 East", "Salt Lake City", "UT", "84107")
 
-            truck2 = calculate_route(truck2, time)
+# Set package truck id to 1
+for package in first_truck.packages:
+    packages_hash_table.get(package).delivery_truck = 1
 
-            truck3 = calculate_route(truck3, time)
+# Create and load second truck
+second_truck = Truck.Truck(
+    2, 16, ["3", "6", "7", "8", "10", "11", "12", "17", "18", "21", "22", "28", "32", "36", "38", "39"], 0, 0, "4001 South 700 East", "Salt Lake City", "UT", "84107")
 
-            # Print package info
-            print("Package ID, Address, City, State, Zip, Delivery Deadline, Weight (kg), Notes, Status")
-            for id in package_ids:
-                package = package_hash.search(id)
-                print(package)
-            print("Distance traveled: " + str(round(truck1.distance + truck2.distance + truck3.distance, 2)))
+# Set package truck id to 2
+for package in second_truck.packages:
+    packages_hash_table.get(package).delivery_truck = 2
 
-        elif command[0] == "s":
-            # Ask for parameters if not given
-            if (len(command) < 3):
-                print("Please provide both inputs")
-                continue
-            # Get id and time from input
-            package_id = int(command[1])
-            time_param = command[2].split(":")
-            time = datetime.timedelta(hours=int(time_param[0]), minutes=int(time_param[1]))
+# Create and load third truck
+third_truck = Truck.Truck(
+    3, 16, ["9", "23", "24", "25", "26", "27", "33", "35", "39"], 0, 0, "4001 South 700 East", "Salt Lake City", "UT", "84107")
 
-            # Updated 9 with correct address if past 10:20
-            if time >= datetime.timedelta(hours=10, minutes=20):
-                p = package_hash.search(9)
-                p.address = "410 S State St"
-                p.city = "Salt Lake City"
-                p.state = "UT"
-                p.zip = "84111"
-                package_hash.insert(p.id, p)
+# Set package truck id to 3
+for package in third_truck.packages:
+    packages_hash_table.get(package).delivery_truck = 3
 
-            # Find what the statuses are of all the packages by the given time
-            truck1 = calculate_route(truck1, time)
+# Get address id from address
 
-            truck2 = calculate_route(truck2, time)
+def get_address_id(address):
+    for item in addresses_list:
+        if address in item[2]:
+            return int(item[0])
 
-            truck3 = calculate_route(truck3, time)
+# Get distance between two addresses
+def get_distance(start_address, end_address):
+    start_address_id = get_address_id(start_address)
+    end_address_id = get_address_id(end_address)
+    distance = distances_list[start_address_id][end_address_id]
+    if distance == "":
+        return float(distances_list[end_address_id][start_address_id])
+    return float(distances_list[start_address_id][end_address_id])
 
-            # Print package info
-            print("Package ID, Address, City, State, Zip, Delivery Deadline, Weight (kg), Notes, Status")
-            package = package_hash.search(package_id)
-            print(package)
+# Method for delivering packages on trucks
+def deliver_packages(truck):
+    # Set current address to hub
+    current_address = truck.current_address
 
-        elif command[0] == "a":
-            # Request time if not given
-            if (len(command) < 2):
-                print("Please specify a time")
-                continue
+    # If truck 1, set departure offset time as 8:00 AM
+    if truck.id == 1:
+        truck.float_time += 480
+    # If truck 2, set departure offset time as 9:05 AM
+    elif truck.id == 2:
+        truck.float_time += 545
 
-            # Get hours and minutes from input
-            time_param = command[1].split(":")
-            time = datetime.timedelta(hours=int(time_param[0]), minutes=int(time_param[1]))
+    # Print truck id
+    print("Delivering packages on truck " + str(truck.id) +
+          " at " + '{0:02.0f}:{1:02.0f}'.format(
+        *divmod(truck.float_time, 60)) + "...")
 
-            # Updated package 9 if time is past 10:20
-            if time >= datetime.timedelta(hours=10, minutes=20):
-                p = package_hash.search(9)
-                p.address = "410 S State St"
-                p.city = "Salt Lake City"
-                p.state = "UT"
-                p.zip = "84111"
-                package_hash.insert(p.id, p)
+    # Correct package 9 address to 410 S State St for truck 3
+    if truck.id == 3:
+        print("\tCorrecting package 9 address to 410 S State St...")
+        packages_hash_table.get("9").address = "410 S State St"
+        packages_hash_table.get("9").city = "Salt Lake City"
+        packages_hash_table.get("9").state = "UT"
+        packages_hash_table.get("9").zip = "84111"
 
-            # Check status of trucks
-            truck1 = calculate_route(truck1, time)
+    # Set package status to "en route"
+    for package in truck.packages:
+        packages_hash_table.get(package).status = "en route"
 
-            truck2 = calculate_route(truck2, time)
+    # Deliver packages
+    while truck.packages:
+        # Get shortest distance between current address and next package
+        shortest = 1000
+        next_package = ""
+        for package in truck.packages:
+            if shortest > get_distance(current_address, packages_hash_table.get(package).address):
+                shortest = get_distance(
+                    current_address, packages_hash_table.get(package).address)
+                next_package = package
 
-            truck3 = calculate_route(truck3, time)
+        # Add distance to package delivery distance
+        packages_hash_table.get(next_package).delivery_distance += shortest
+        # Add distance to truck distance
+        truck.distance += shortest
+        # Calculate time
+        time = (shortest / 18) * 60
+        # Add time to truck float time
+        truck.float_time += time
+        # Set package status to "Delivered"
+        packages_hash_table.get(next_package).status = "delivered"
+        # Set package delivery time
+        # Convert float time to time
+        package_delivery_time = '{0:02.0f}:{1:02.0f}'.format(
+            *divmod(truck.float_time, 60))
+        packages_hash_table.get(
+            next_package).delivery_time = package_delivery_time
+        # Deliver package
+        print("\t" + package_delivery_time + " - Delivering package " + next_package + " at " +
+              packages_hash_table.get(next_package).address + ".")
+        # Remove package from truck
+        truck.packages.remove(next_package)
+        # Set current address to next package address
+        current_address = packages_hash_table.get(next_package).address
 
-            # Print package info
-            print("Package ID, Address, City, State, Zip, Delivery Deadline, Weight (kg), Notes, Status")
-            for id in package_ids:
-                package = package_hash.search(id)
-                print(package)
+    # Print total distance traveled
+    print("\nTruck " + str(truck.id) + " delivered all packages at " +
+          str(round(truck.distance, 2)) + " miles.")
 
-        # Quit
+    # Print total time elapsed
+    time = '{0:02.0f}:{1:02.0f}'.format(*divmod(truck.float_time, 60))
+    print("Truck " + str(truck.id) + " delivered all packages at " +
+          time + ".\n")
+
+    # Return total distance traveled
+    return truck.distance
+
+
+# Deliver packages on trucks
+total_distance = 0
+total_distance += deliver_packages(first_truck)
+total_distance += deliver_packages(second_truck)
+# Create variable for third truck departure time
+if first_truck.float_time < second_truck.float_time:
+    third_truck.float_time = first_truck.float_time
+else:
+    third_truck.float_time = second_truck.float_time
+total_distance += deliver_packages(third_truck)
+
+# Print total distance
+print("Total distance traveled: " + str(total_distance) + " miles.")
+
+# Print total time
+time = '{0:02.0f}:{1:02.0f}'.format(
+    *divmod(first_truck.float_time + second_truck.float_time + third_truck.float_time - 1645, 60))
+print("Total time: " + time + ".")
+
+# Line divider
+print("\n" + "-" * 80 + "\n")
+
+# Console interface
+while True:
+    # Package lookup or time lookup
+    lookup_input = input(
+        "Enter 'p' to find PACKAGE by id or 't' to package status at a specific time (HH:MM) 'q' to quit \n> ")
+
+    # Lookup function
+    if lookup_input == "q":
+        break
+    # package
+    if lookup_input == "p":
+        # Package lookup
+        package_id_input = input(
+            "Enter a package ID to look up package \n> ")
+        # valid id
+        if packages_hash_table.get(package_id_input) is not None:
+            # Print package
+            print("\nPackage ID " + package_id_input + ":")
+            print("\tAddress: " + packages_hash_table.get(
+                package_id_input).address)
+            print("\tDeadline: " + packages_hash_table.get(
+                package_id_input).deadline)
+            print("\tCity: " + packages_hash_table.get(
+                package_id_input).city)
+            print("\tState: " + packages_hash_table.get(
+                package_id_input).state)
+            print("\tZip: " + packages_hash_table.get(
+                package_id_input).zip)
+            print("\tWeight: " + packages_hash_table.get(
+                package_id_input).weight)
+            print("\tStatus: " + packages_hash_table.get(
+                package_id_input).status)
+            print("\tDelivery time: " + packages_hash_table.get(
+                package_id_input).delivery_time)
         else:
-            break
+            print("Invalid ID")
+
+
+    # Time
+    elif lookup_input == "t":
+        # Get input
+        time_input = input(
+            "Enter a time (HH:MM)  to show all package statuses and distance traveled across all trucks \n> ")
+        # total distance traveled
+        total_distance = 0
+        # perform time lookup
+        if re.match(r"^(?:[01]\d|2[0-3]):[0-5]\d$", time_input):
+            # user input to float
+            time_input = time_input.split(":")
+            time_input = (int(time_input[0]) * 60) + int(time_input[1])
+
+            # Print all package statuses on all trucks
+            print("\nPackage statuses at " + '{0:02.0f}:{1:02.0f}'.format(
+                *divmod(time_input, 60)) + ":")
+            for package in range(1, packages_hash_table.size + 1):
+                str_package = str(package)
+                if packages_hash_table.get(str_package) is not None:
+                    if packages_hash_table.get(str_package).delivery_time != "N/A":
+                        delivery_time = packages_hash_table.get(
+                            str_package).delivery_time
+                        delivery_time = delivery_time.split(":")
+                        delivery_time = (
+                            int(delivery_time[0]) * 60) + int(delivery_time[1])
+                        if delivery_time <= time_input:
+                            print("\tPackage " + str_package + " - " +
+                                  packages_hash_table.get(str_package).status + " at " + packages_hash_table.get(str_package).delivery_time +
+                                  " by truck " + str(packages_hash_table.get(str_package).delivery_truck) + " to " +
+                                  addresses_list[int(get_address_id(packages_hash_table.get(str_package).address))][1] +
+                                  ", " + packages_hash_table.get(str_package).address + ".")
+                            total_distance += packages_hash_table.get(
+                                str_package).delivery_distance
+                        # If package delivery time is greater than user input time
+                        else:
+                            # If iput is less than 8:00 all packages are at hub
+                            if time_input < 480:
+                                print("\tPackage " + str_package + " - at the hub " + " on truck " +
+                                      str(packages_hash_table.get(str_package).delivery_truck) + " at " +
+                                      addresses_list[0][1] + ", " + addresses_list[0][2] + ".")
+                            # If input is equal to or greater than 8:00 but less than 9:05
+                            elif time_input >= 480 and time_input < 545:
+                                # Truck 1 packages
+                                if packages_hash_table.get(str_package).delivery_truck == 1:
+                                    print("\tPackage " + str_package + " - en route on truck " +
+                                          addresses_list[int(get_address_id(packages_hash_table.get(str_package).address))][1] +
+                                          ", " + str(packages_hash_table.get(str_package).delivery_truck) + " to " +
+                                          packages_hash_table.get(str_package).address + ".")
+                                # All others packages are at hub
+                                else:
+                                    print("\tPackage " + str_package + " - at the hub on truck " +
+                                          str(packages_hash_table.get(str_package).delivery_truck) + " at " +
+                                          addresses_list[0][1] + ", " + addresses_list[0][2] + ".")
+                            # If input is equal to or greater than 9:05 but less than 10:20
+                            elif time_input >= 545 and time_input < 620:
+                                # Truck 2 en route
+                                if packages_hash_table.get(str_package).delivery_truck == 2:
+                                    print("\tPackage " + str_package + " - en route on truck " +
+                                          addresses_list[int(get_address_id(packages_hash_table.get(str_package).address))][1] +
+                                          ", " + str(packages_hash_table.get(str_package).delivery_truck) + " to " +
+                                          packages_hash_table.get(str_package).address + ".")
+                                # All other packages are at hub
+                                else:
+                                    print("\tPackage " + str_package + " - at the hub on truck " +
+                                          str(packages_hash_table.get(str_package).delivery_truck) + " at " +
+                                          addresses_list[0][1] + ", " + addresses_list[0][2] + ".")
+                            # If input is equal to or greater than whenever truck 3 departure
+                            elif time_input >= third_truck.float_time:
+                                # Truck 3 en route
+                                if packages_hash_table.get(str_package).delivery_truck == 3:
+                                    print("\tPackage " + str_package + " - en route on truck " +
+                                          addresses_list[int(get_address_id(packages_hash_table.get(str_package).address))][1] +
+                                          ", " + str(packages_hash_table.get(str_package).delivery_truck) + " to " +
+                                          packages_hash_table.get(str_package).address + ".")
+                                # All other packages are at hub
+                                else:
+                                    print("\tPackage " + str_package + " - at the hub on truck " +
+                                          str(packages_hash_table.get(str_package).delivery_truck) + " at " +
+                                          addresses_list[0][1] + ", " + addresses_list[0][2] + ".")
+            # Print total distance
+            print("\nTotal distance traveled across all trucks at " +
+                  '{0:02.0f}:{1:02.0f}'.format(
+                      *divmod(time_input, 60)) + " is " + str(round(total_distance, 2)) + " miles.")
+        # If input is invalid
+        else:
+            print("Invalid time. Please try again.")
+
+    # Line divider for readability
+    print("\n" + "-" * 80 + "\n")
