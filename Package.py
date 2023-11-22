@@ -18,6 +18,7 @@ class Package:
                                                        self.Deadline_time, self.weight, self.delivery,
                                                        self.status, self.delivery_truck)
 
+    # Create class for packages
     def update_status(self, convert_timedelta):
         if self.delivery < convert_timedelta:
             self.status = "Delivered"

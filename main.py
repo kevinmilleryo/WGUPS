@@ -1,34 +1,27 @@
-#Kevin Miller
-#Student ID: 011482203
-
+# #Kevin Miller
+# #Student ID: 011482203
 import csv
 import datetime
-import Truck
-from builtins import ValueError
-
 from HashTable import HashTable
 from Package import Package
+from Truck import Truck  # Assuming Truck is in a separate module
 
-#create hash table
-package_hash = HashTable()
-
-
-#read distance csv
+# read distance csv
 with open("distances.csv") as csvfile:
     Distance_CSV = csv.reader(csvfile)
     Distance_CSV = list(Distance_CSV)
 
-#read address csv
+# read address csv
 with open("addresses.csv") as csvfile1:
     Address_CSV = csv.reader(csvfile1)
     Address_CSV = list(Address_CSV)
 
-#read package csv
+# read package csv
 with open("packages.csv") as csvfile2:
     Package_CSV = csv.reader(csvfile2)
     Package_CSV = list(csvfile2)
 
-#create object for packages from csv and insert packages
+# create object for packages from csv and insert packages
 def load_package_data(filename, package_hash):
     with open(filename) as package_info:
         package_data = csv.reader(package_info)
@@ -37,7 +30,7 @@ def load_package_data(filename, package_hash):
             pAddress = package[1]
             pCity = package[2]
             pState = package[3]
-            pZipcode = package[3]
+            pZipcode = package[4]
             pDeadline = package[5]
             pWeight = package[6]
             pStatus = "At hub"
@@ -46,58 +39,60 @@ def load_package_data(filename, package_hash):
 
             package_hash.insert(pID, p)
 
-#calculate distance
-def find_distance(x,y):
+# calculate distance
+def find_distance(x, y):
     distance = Distance_CSV[x][y]
     if distance == '':
         distance = Distance_CSV[y][x]
 
     return float(distance)
 
-#get address number
+# get address number
 def get_address(address):
     for row in Address_CSV:
         if address in row[2]:
             return int(row[0])
 
-#load packages into hash
-load_package_data("packages.csv", package_hash)
+# Create and load 3 trucks
+truck1 = Truck(16, 18, None, [1, 13, 14, 15, 16, 20, 29, 30, 31, 34, 37, 40], 0.0, "4001 South 700 East",
+               datetime.timedelta(hours=8))
 
-#Create and load 3 trucks
-truck1 = Truck.Truck(16, 18, None, [1, 13, 14, 15, 16, 20, 29, 30, 31, 34, 37, 40], 0.0, "4001 South 700 East",
-                     datetime.timedelta(hours=8))
+truck2 = Truck(16, 18, None, [3, 12, 17, 18, 19, 21, 22, 23, 24, 26, 27, 35, 36, 38, 39], 0.0,
+               "4001 South 700 East", datetime.timedelta(hours=9, minutes=5))
+
+truck3 = Truck(16, 18, None, [2, 4, 5, 6, 7, 8, 9, 10, 11, 25, 28, 32, 33], 0.0, "4001 South 700 East",
+               datetime.timedelta(hours=10, minutes=20))
+
+# create hash table
+package_hash = HashTable()
+
+# load packages into hash
+load_package_data("packages.csv", package_hash)
 
 # Iterate through packages and set delivery_truck attribute
 for package_id in truck1.packages:
     package = package_hash.lookup(package_id)
     package.delivery_truck = 1
 
-truck2 = Truck.Truck(16, 18, None, [3, 12, 17, 18, 19, 21, 22, 23, 24, 26, 27, 35, 36, 38, 39], 0.0,
-                     "4001 South 700 East", datetime.timedelta(hours=10, minutes=20))
-
 for package_id in truck2.packages:
     package = package_hash.lookup(package_id)
     package.delivery_truck = 2
-
-truck3 = Truck.Truck(16, 18, None, [2, 4, 5, 6, 7, 8, 9, 10, 11, 25, 28, 32, 33], 0.0, "4001 South 700 East",
-                     datetime.timedelta(hours=9, minutes=5))
 
 for package_id in truck3.packages:
     package = package_hash.lookup(package_id)
     package.delivery_truck = 3
 
-
-#deliver packages utilizing nearest neighbor algorithm
+# deliver packages utilizing the nearest neighbor algorithm
 def deliver_packages(truck):
-    #put all packages into array of undelivereds
+    # put all packages into an array of undelivereds
     undelivered = []
     for packageID in truck.packages:
         package = package_hash.lookup(packageID)
         undelivered.append(package)
-        #clear package list of truck
+        # clear the package list of the truck
     truck.packages.clear()
 
-#Loop through undelivered packages until none remain
+    # Loop through undelivered packages until none remain
     while len(undelivered) > 0:
         next_address = 2000
         next_package = None
@@ -105,25 +100,32 @@ def deliver_packages(truck):
             if find_distance(get_address(truck.address), get_address(package.address)) <= next_address:
                 next_address = find_distance(get_address(truck.address), get_address(package.address))
                 next_package = package
-        #add closest package to truck list
+        # add the closest package to the truck list
         truck.packages.append(next_package.ID)
-        #remove that package from undelivered
+        # remove that package from undelivered
         undelivered.remove(next_package)
-        #add mileage driven to truck mileage
+        # add mileage driven to truck mileage
         truck.mileage += next_address
-        #update truck address
+        # update the truck address
         truck.address = next_package.address
-        #add time to get to package to truck time
+        # add time to get to the package to the truck time
         truck.time += datetime.timedelta(hours=next_address / 18)
         next_package.delivery = truck.time
         next_package.departure = truck.departure
 
+
 # load trucks
+
+# Print the values for debugging
 deliver_packages(truck1)
 deliver_packages(truck2)
-#truck 3 leaves last
-truck3.depart = min(truck1.time, truck2.time)
+# truck 3 leaves last
+#since truck 3 leaves at 10:20, package 9 address is updated
+package_hash.lookup(9).address = "410 S State St"
+package_hash.lookup(9).zipCode = "84111"
 deliver_packages(truck3)
+
+
 
 #User interface
 class Main:
