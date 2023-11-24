@@ -115,14 +115,16 @@ def deliver_packages(truck):
 
 
 # load trucks
-
-# Print the values for debugging
 deliver_packages(truck1)
 deliver_packages(truck2)
 # truck 3 leaves last
-#since truck 3 leaves at 10:20, package 9 address is updated
-package_hash.lookup(9).address = "410 S State St"
-package_hash.lookup(9).zipCode = "84111"
+update_time = datetime.timedelta(hours=10, minutes=20)
+# Check if the departure time of truck3 is after 10:20 a.m.
+if truck3.departure >= update_time:
+    # Update the address for Package #9
+    package_9 = package_hash.lookup(9)
+    package_9.address = "410 S State St"
+    package_9.zipcode = "84111"
 deliver_packages(truck3)
 
 
